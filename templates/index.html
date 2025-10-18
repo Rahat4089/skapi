@@ -6,131 +6,307 @@
     <title>Stripe SK Mass Checker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .status-live-on { background: linear-gradient(135deg, #10b981, #059669); }
-        .status-live-off { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .status-rate-limited { background: linear-gradient(135deg, #ef4444, #dc2626); }
-        .status-invalid { background: linear-gradient(135deg, #6b7280, #4b5563); }
-        .status-expired { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        * {
+            font-family: 'Inter', sans-serif;
+        }
         
-        .glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
         
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .status-live-on { 
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .status-live-off { 
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        .status-rate-limited { 
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        .status-invalid { 
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+        }
+        
+        .category-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sk-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .sk-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+        
+        .copy-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .copy-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .copy-btn.copied {
+            background: #10b981 !important;
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .dropdown-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .dropdown-content.open {
+            max-height: 500px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-    <div class="container mx-auto px-4 py-8">
+<body class="bg-gray-900 text-white min-h-screen gradient-bg">
+    <!-- Animated Background -->
+    <div class="fixed inset-0 opacity-10">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 animate-pulse-slow"></div>
+    </div>
+
+    <div class="relative z-10 container mx-auto px-4 py-8">
         <!-- Header -->
         <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-4">
-                <i class="fas fa-credit-card mr-3"></i>
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-2xl mb-4 glow">
+                <i class="fas fa-credit-card text-2xl text-white"></i>
+            </div>
+            <h1 class="text-5xl font-bold text-white mb-4">
                 Stripe SK Mass Checker
             </h1>
-            <p class="text-gray-400 text-lg">Check multiple Stripe secret keys simultaneously</p>
+            <p class="text-white/70 text-lg">Check multiple Stripe secret keys simultaneously with advanced categorization</p>
         </div>
 
         <!-- Main Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Input Section -->
-            <div class="bg-gray-800 rounded-2xl p-6 glow">
-                <h2 class="text-2xl font-bold mb-6 text-blue-400">
-                    <i class="fas fa-key mr-2"></i>Check SK Keys
-                </h2>
-                
-                <!-- Single Check -->
-                <div class="mb-8">
-                    <label class="block text-sm font-medium mb-2 text-gray-300">Single SK Check</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="singleSk" placeholder="sk_live_..." 
-                               class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500">
-                        <button onclick="checkSingle()" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                            <i class="fas fa-search mr-2"></i>Check
-                        </button>
+            <div class="lg:col-span-1">
+                <div class="glass-effect rounded-2xl p-6 glow">
+                    <h2 class="text-2xl font-bold mb-6 text-white">
+                        <i class="fas fa-key mr-3"></i>Check SK Keys
+                    </h2>
+                    
+                    <!-- Single Check -->
+                    <div class="mb-8">
+                        <label class="block text-sm font-medium mb-3 text-white/80">Single SK Check</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="singleSk" placeholder="sk_live_..." 
+                                   class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all">
+                            <button onclick="checkSingle()" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 active:scale-95">
+                                <i class="fas fa-search mr-2"></i>Check
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Bulk Check -->
-                <div>
-                    <label class="block text-sm font-medium mb-2 text-gray-300">Bulk SK Check (One per line)</label>
-                    <textarea id="bulkSks" rows="12" placeholder="sk_live_...
+                    <!-- Bulk Check -->
+                    <div>
+                        <label class="block text-sm font-medium mb-3 text-white/80">Bulk SK Check</label>
+                        <textarea id="bulkSks" rows="10" placeholder="sk_live_...
 sk_live_...
 sk_test_..." 
-                             class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 font-mono text-sm"></textarea>
-                    <div class="flex justify-between items-center mt-4">
-                        <button onclick="checkBulk()" id="bulkCheckBtn" class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                            <i class="fas fa-bolt mr-2"></i>Check All
-                        </button>
-                        <span id="keyCount" class="text-gray-400 text-sm">0 keys</span>
+                                 class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all font-mono text-sm resize-none"></textarea>
+                        <div class="flex justify-between items-center mt-4">
+                            <button onclick="checkBulk()" id="bulkCheckBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 active:scale-95">
+                                <i class="fas fa-bolt mr-2"></i>Check All Keys
+                            </button>
+                            <span id="keyCount" class="text-white/60 text-sm bg-white/10 px-3 py-1 rounded-lg">0 keys</span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div id="progressSection" class="mt-6 hidden">
+                        <div class="flex justify-between text-sm mb-2 text-white/80">
+                            <span>Processing bulk check...</span>
+                            <span id="progressText">0%</span>
+                        </div>
+                        <div class="w-full bg-white/20 rounded-full h-2">
+                            <div id="progressBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Progress Bar -->
-                <div id="progressSection" class="mt-6 hidden">
-                    <div class="flex justify-between text-sm mb-2">
-                        <span>Processing...</span>
-                        <span id="progressText">0%</span>
-                    </div>
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div id="progressBar" class="bg-green-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <!-- Quick Stats -->
+                <div id="quickStats" class="glass-effect rounded-2xl p-6 mt-6 hidden">
+                    <h3 class="text-xl font-bold mb-4 text-white">Quick Stats</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-3 bg-white/5 rounded-xl">
+                            <div class="text-2xl font-bold text-green-400" id="countLiveOn">0</div>
+                            <div class="text-xs text-white/60">Live [On]</div>
+                        </div>
+                        <div class="text-center p-3 bg-white/5 rounded-xl">
+                            <div class="text-2xl font-bold text-yellow-400" id="countLiveOff">0</div>
+                            <div class="text-xs text-white/60">Live [Off]</div>
+                        </div>
+                        <div class="text-center p-3 bg-white/5 rounded-xl">
+                            <div class="text-2xl font-bold text-red-400" id="countRateLimited">0</div>
+                            <div class="text-xs text-white/60">Rate Limited</div>
+                        </div>
+                        <div class="text-center p-3 bg-white/5 rounded-xl">
+                            <div class="text-2xl font-bold text-gray-400" id="countInvalid">0</div>
+                            <div class="text-xs text-white/60">Invalid</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Results Section -->
-            <div class="bg-gray-800 rounded-2xl p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-green-400">
-                        <i class="fas fa-chart-bar mr-2"></i>Results
-                    </h2>
-                    <div class="text-sm text-gray-400">
-                        <span id="resultCount">0</span> keys checked
+            <div class="lg:col-span-2">
+                <div class="glass-effect rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-white">
+                            <i class="fas fa-chart-bar mr-3"></i>Categorized Results
+                        </h2>
+                        <div class="text-sm text-white/60 bg-white/10 px-3 py-1 rounded-lg">
+                            <span id="resultCount">0</span> keys checked
+                        </div>
                     </div>
-                </div>
 
-                <!-- Stats -->
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-                    <div class="bg-gray-700 rounded-lg p-3 text-center">
-                        <div class="text-green-400 font-bold text-xl" id="countLiveOn">0</div>
-                        <div class="text-xs text-gray-400">Live [On]</div>
-                    </div>
-                    <div class="bg-gray-700 rounded-lg p-3 text-center">
-                        <div class="text-yellow-400 font-bold text-xl" id="countLiveOff">0</div>
-                        <div class="text-xs text-gray-400">Live [Off]</div>
-                    </div>
-                    <div class="bg-gray-700 rounded-lg p-3 text-center">
-                        <div class="text-red-400 font-bold text-xl" id="countRateLimited">0</div>
-                        <div class="text-xs text-gray-400">Rate Limited</div>
-                    </div>
-                    <div class="bg-gray-700 rounded-lg p-3 text-center">
-                        <div class="text-gray-400 font-bold text-xl" id="countInvalid">0</div>
-                        <div class="text-xs text-gray-400">Invalid</div>
-                    </div>
-                    <div class="bg-gray-700 rounded-lg p-3 text-center">
-                        <div class="text-purple-400 font-bold text-xl" id="countExpired">0</div>
-                        <div class="text-xs text-gray-400">Expired</div>
-                    </div>
-                </div>
+                    <!-- Results Container with Categories -->
+                    <div id="resultsContainer" class="space-y-4">
+                        <!-- Live [Integration On] Category -->
+                        <div class="category-card rounded-xl overflow-hidden">
+                            <div class="status-live-on p-4 cursor-pointer" onclick="toggleCategory('liveOn')">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-play-circle mr-3 text-xl"></i>
+                                        <h3 class="text-lg font-bold">Live [Integration On]</h3>
+                                        <span class="ml-3 bg-white/20 px-2 py-1 rounded text-xs font-bold" id="countLiveOnBadge">0</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down transition-transform duration-300" id="liveOnChevron"></i>
+                                </div>
+                            </div>
+                            <div class="dropdown-content" id="liveOnContent">
+                                <div class="p-4 space-y-3" id="liveOnItems">
+                                    <!-- Items will be added here -->
+                                </div>
+                                <div class="p-3 bg-white/5 border-t border-white/10">
+                                    <button onclick="copyAll('liveOn')" class="w-full copy-btn bg-green-600 hover:bg-green-700 py-2 rounded-lg font-semibold transition-all duration-200">
+                                        <i class="fas fa-copy mr-2"></i>Copy All SK Keys
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Results Container -->
-                <div id="resultsContainer" class="space-y-4 max-h-96 overflow-y-auto">
-                    <div class="text-center text-gray-500 py-8">
-                        <i class="fas fa-inbox text-4xl mb-2"></i>
-                        <p>No results yet. Check some SK keys!</p>
-                    </div>
-                </div>
+                        <!-- Live [Integration Off] Category -->
+                        <div class="category-card rounded-xl overflow-hidden">
+                            <div class="status-live-off p-4 cursor-pointer" onclick="toggleCategory('liveOff')">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-pause-circle mr-3 text-xl"></i>
+                                        <h3 class="text-lg font-bold">Live [Integration Off]</h3>
+                                        <span class="ml-3 bg-white/20 px-2 py-1 rounded text-xs font-bold" id="countLiveOffBadge">0</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down transition-transform duration-300" id="liveOffChevron"></i>
+                                </div>
+                            </div>
+                            <div class="dropdown-content" id="liveOffContent">
+                                <div class="p-4 space-y-3" id="liveOffItems">
+                                    <!-- Items will be added here -->
+                                </div>
+                                <div class="p-3 bg-white/5 border-t border-white/10">
+                                    <button onclick="copyAll('liveOff')" class="w-full copy-btn bg-yellow-600 hover:bg-yellow-700 py-2 rounded-lg font-semibold transition-all duration-200">
+                                        <i class="fas fa-copy mr-2"></i>Copy All SK Keys
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Export Buttons -->
-                <div id="exportSection" class="mt-6 hidden">
-                    <div class="flex gap-2">
-                        <button onclick="exportResults('json')" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition-colors">
-                            <i class="fas fa-download mr-2"></i>Export JSON
-                        </button>
-                        <button onclick="exportResults('csv')" class="flex-1 bg-gray-700 hover:bg-gray-600 py-2 rounded-lg transition-colors">
-                            <i class="fas fa-file-csv mr-2"></i>Export CSV
-                        </button>
+                        <!-- Rate Limited Category -->
+                        <div class="category-card rounded-xl overflow-hidden">
+                            <div class="status-rate-limited p-4 cursor-pointer" onclick="toggleCategory('rateLimited')">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-exclamation-triangle mr-3 text-xl"></i>
+                                        <h3 class="text-lg font-bold">Rate Limited</h3>
+                                        <span class="ml-3 bg-white/20 px-2 py-1 rounded text-xs font-bold" id="countRateLimitedBadge">0</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down transition-transform duration-300" id="rateLimitedChevron"></i>
+                                </div>
+                            </div>
+                            <div class="dropdown-content" id="rateLimitedContent">
+                                <div class="p-4 space-y-3" id="rateLimitedItems">
+                                    <!-- Items will be added here -->
+                                </div>
+                                <div class="p-3 bg-white/5 border-t border-white/10">
+                                    <button onclick="copyAll('rateLimited')" class="w-full copy-btn bg-red-600 hover:bg-red-700 py-2 rounded-lg font-semibold transition-all duration-200">
+                                        <i class="fas fa-copy mr-2"></i>Copy All SK Keys
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Invalid Category -->
+                        <div class="category-card rounded-xl overflow-hidden">
+                            <div class="status-invalid p-4 cursor-pointer" onclick="toggleCategory('invalid')">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-times-circle mr-3 text-xl"></i>
+                                        <h3 class="text-lg font-bold">Invalid Keys</h3>
+                                        <span class="ml-3 bg-white/20 px-2 py-1 rounded text-xs font-bold" id="countInvalidBadge">0</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down transition-transform duration-300" id="invalidChevron"></i>
+                                </div>
+                            </div>
+                            <div class="dropdown-content" id="invalidContent">
+                                <div class="p-4 space-y-3" id="invalidItems">
+                                    <!-- Items will be added here -->
+                                </div>
+                                <div class="p-3 bg-white/5 border-t border-white/10">
+                                    <button onclick="copyAll('invalid')" class="w-full copy-btn bg-gray-600 hover:bg-gray-700 py-2 rounded-lg font-semibold transition-all duration-200">
+                                        <i class="fas fa-copy mr-2"></i>Copy All SK Keys
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" class="text-center py-12">
+                        <i class="fas fa-inbox text-4xl text-white/30 mb-4"></i>
+                        <p class="text-white/50">No results yet. Check some SK keys to see them categorized here!</p>
                     </div>
                 </div>
             </div>
@@ -140,12 +316,27 @@ sk_test_..."
     <script>
         let currentJobId = null;
         let allResults = [];
+        const categories = {
+            'Live [Integration On]': 'liveOn',
+            'Live [Integration Off]': 'liveOff',
+            'Rate Limited': 'rateLimited',
+            'Invalid': 'invalid'
+        };
 
         // Update key count
         document.getElementById('bulkSks').addEventListener('input', function() {
             const keys = this.value.split('\n').filter(k => k.trim());
             document.getElementById('keyCount').textContent = `${keys.length} keys`;
         });
+
+        // Toggle category dropdown
+        function toggleCategory(category) {
+            const content = document.getElementById(`${category}Content`);
+            const chevron = document.getElementById(`${category}Chevron`);
+            
+            content.classList.toggle('open');
+            chevron.classList.toggle('rotate-180');
+        }
 
         // Check single SK
         async function checkSingle() {
@@ -165,7 +356,7 @@ sk_test_..."
                 
                 const result = await response.json();
                 allResults = [result];
-                displayResults([result]);
+                displayCategorizedResults();
                 updateStats();
                 
             } catch (error) {
@@ -197,11 +388,12 @@ sk_test_..."
                 currentJobId = data.job_id;
                 
                 document.getElementById('progressSection').classList.remove('hidden');
+                document.getElementById('quickStats').classList.remove('hidden');
                 monitorProgress();
                 
             } catch (error) {
                 alert('Error starting bulk check: ' + error.message);
-                btn.innerHTML = '<i class="fas fa-bolt mr-2"></i>Check All';
+                btn.innerHTML = '<i class="fas fa-bolt mr-2"></i>Check All Keys';
                 btn.disabled = false;
             }
         }
@@ -220,7 +412,7 @@ sk_test_..."
                 
                 if (data.results) {
                     allResults = data.results;
-                    displayResults(data.results);
+                    displayCategorizedResults();
                     updateStats();
                 }
                 
@@ -228,9 +420,8 @@ sk_test_..."
                     setTimeout(monitorProgress, 1000);
                 } else {
                     document.getElementById('progressSection').classList.add('hidden');
-                    document.getElementById('bulkCheckBtn').innerHTML = '<i class="fas fa-bolt mr-2"></i>Check All';
+                    document.getElementById('bulkCheckBtn').innerHTML = '<i class="fas fa-bolt mr-2"></i>Check All Keys';
                     document.getElementById('bulkCheckBtn').disabled = false;
-                    document.getElementById('exportSection').classList.remove('hidden');
                 }
                 
             } catch (error) {
@@ -239,38 +430,65 @@ sk_test_..."
             }
         }
 
-        // Display results
-        function displayResults(results) {
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = '';
+        // Display categorized results
+        function displayCategorizedResults() {
+            if (allResults.length === 0) return;
             
-            results.forEach(result => {
-                const statusClass = getStatusClass(result.status);
-                const card = document.createElement('div');
-                card.className = `card-hover fade-in bg-gray-700 rounded-xl p-4 border-l-4 ${statusClass}`;
-                
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="font-semibold text-sm truncate flex-1 mr-2">${result.sk_key}</div>
-                        <span class="px-2 py-1 rounded text-xs font-bold ${statusClass.replace('border-l-4', '')}">
-                            ${result.status}
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-xs text-gray-300">
-                        <div><span class="text-gray-500">PK:</span> ${result.pk_key.substring(0, 20)}...</div>
-                        <div><span class="text-gray-500">Mode:</span> ${result.charge_mode}</div>
-                        <div><span class="text-gray-500">Currency:</span> ${result.currency}</div>
-                        <div><span class="text-gray-500">Balance:</span> ${formatCurrency(result.balance, result.currency)}</div>
-                        <div><span class="text-gray-500">Pending:</span> ${formatCurrency(result.pending_balance, result.currency)}</div>
-                        <div><span class="text-gray-500">URL:</span> ${result.url}</div>
-                    </div>
-                    ${result.error ? `<div class="mt-2 text-xs text-red-400"><i class="fas fa-exclamation-triangle mr-1"></i>${result.error}</div>` : ''}
-                `;
-                
-                container.appendChild(card);
+            document.getElementById('emptyState').style.display = 'none';
+            
+            // Clear all category items
+            Object.values(categories).forEach(category => {
+                document.getElementById(`${category}Items`).innerHTML = '';
             });
             
-            document.getElementById('resultCount').textContent = results.length;
+            // Group results by status
+            const groupedResults = {};
+            Object.keys(categories).forEach(status => {
+                groupedResults[status] = allResults.filter(r => r.status === status);
+            });
+            
+            // Display results in respective categories
+            Object.keys(categories).forEach(status => {
+                const categoryId = categories[status];
+                const container = document.getElementById(`${categoryId}Items`);
+                const results = groupedResults[status];
+                
+                if (results.length > 0) {
+                    results.forEach(result => {
+                        const card = createSKCard(result);
+                        container.appendChild(card);
+                    });
+                }
+            });
+            
+            document.getElementById('resultCount').textContent = allResults.length;
+        }
+
+        // Create SK card
+        function createSKCard(result) {
+            const card = document.createElement('div');
+            card.className = 'sk-card rounded-lg p-4 fade-in';
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex-1">
+                        <div class="font-mono text-sm text-white/90 truncate">${result.sk_key}</div>
+                        <div class="text-xs text-white/60 mt-1">${result.account_name} • ${result.charge_mode}</div>
+                    </div>
+                    <button onclick="copyToClipboard('${result.sk_key}', this)" class="copy-btn bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200">
+                        <i class="fas fa-copy mr-1"></i>Copy
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs text-white/70">
+                    <div><span class="text-white/50">PK:</span> ${result.pk_key.substring(0, 25)}...</div>
+                    <div><span class="text-white/50">Currency:</span> ${result.currency}</div>
+                    <div><span class="text-white/50">Balance:</span> ${formatCurrency(result.balance, result.currency)}</div>
+                    <div><span class="text-white/50">Pending:</span> ${formatCurrency(result.pending_balance, result.currency)}</div>
+                </div>
+                ${result.error ? `<div class="mt-2 text-xs text-red-300"><i class="fas fa-exclamation-circle mr-1"></i>${result.error}</div>` : ''}
+            `;
+            
+            return card;
         }
 
         // Update statistics
@@ -279,31 +497,60 @@ sk_test_..."
                 'Live [Integration On]': 0,
                 'Live [Integration Off]': 0,
                 'Rate Limited': 0,
-                'Invalid': 0,
-                'Expired': 0
+                'Invalid': 0
             };
             
             allResults.forEach(result => {
                 stats[result.status] = (stats[result.status] || 0) + 1;
             });
             
+            // Update main stats
             document.getElementById('countLiveOn').textContent = stats['Live [Integration On]'];
             document.getElementById('countLiveOff').textContent = stats['Live [Integration Off]'];
             document.getElementById('countRateLimited').textContent = stats['Rate Limited'];
             document.getElementById('countInvalid').textContent = stats['Invalid'];
-            document.getElementById('countExpired').textContent = stats['Expired'];
+            
+            // Update badge counts
+            document.getElementById('countLiveOnBadge').textContent = stats['Live [Integration On]'];
+            document.getElementById('countLiveOffBadge').textContent = stats['Live [Integration Off]'];
+            document.getElementById('countRateLimitedBadge').textContent = stats['Rate Limited'];
+            document.getElementById('countInvalidBadge').textContent = stats['Invalid'];
         }
 
-        // Get status class
-        function getStatusClass(status) {
-            const classes = {
-                'Live [Integration On]': 'status-live-on border-l-green-500',
-                'Live [Integration Off]': 'status-live-off border-l-yellow-500',
-                'Rate Limited': 'status-rate-limited border-l-red-500',
-                'Invalid': 'status-invalid border-l-gray-500',
-                'Expired': 'status-expired border-l-purple-500'
-            };
-            return classes[status] || 'status-invalid border-l-gray-500';
+        // Copy to clipboard
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHtml;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        // Copy all keys from category
+        function copyAll(category) {
+            const status = Object.keys(categories).find(key => categories[key] === category);
+            const keys = allResults.filter(r => r.status === status).map(r => r.sk_key);
+            
+            if (keys.length === 0) return;
+            
+            const text = keys.join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                // Show temporary notification
+                const button = event.target;
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-2"></i>All Keys Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHtml;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
         }
 
         // Format currency
@@ -312,51 +559,6 @@ sk_test_..."
             const symbols = { usd: '$', eur: '€', gbp: '£' };
             const symbol = symbols[currency?.toLowerCase()] || currency?.toUpperCase() + ' ';
             return symbol + formatted;
-        }
-
-        // Export results
-        function exportResults(format) {
-            if (allResults.length === 0) return alert('No results to export');
-            
-            let content, mimeType, filename;
-            
-            if (format === 'json') {
-                content = JSON.stringify(allResults, null, 2);
-                mimeType = 'application/json';
-                filename = 'stripe_results.json';
-            } else {
-                // CSV
-                const headers = ['Status', 'SK Key', 'PK Key', 'Charge Mode', 'Currency', 'Balance', 'Pending Balance', 'URL', 'Account Name', 'Error'];
-                const csvRows = [headers.join(',')];
-                
-                allResults.forEach(result => {
-                    const row = [
-                        `"${result.status}"`,
-                        `"${result.sk_key}"`,
-                        `"${result.pk_key}"`,
-                        `"${result.charge_mode}"`,
-                        `"${result.currency}"`,
-                        result.balance,
-                        result.pending_balance,
-                        `"${result.url}"`,
-                        `"${result.account_name}"`,
-                        `"${result.error || ''}"`
-                    ];
-                    csvRows.push(row.join(','));
-                });
-                
-                content = csvRows.join('\n');
-                mimeType = 'text/csv';
-                filename = 'stripe_results.csv';
-            }
-            
-            const blob = new Blob([content], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
         }
     </script>
 </body>
