@@ -12,7 +12,7 @@ import time
 
 app = Flask(__name__)
 
-# In-memory storage for results (in production, use Redis or database)
+# In-memory storage for results
 results_store = {}
 lock = threading.Lock()
 
@@ -91,7 +91,8 @@ def get_basic_account_info(sk_key):
         "pending_balance": 0,
         "url": "Unknown",
         "account_name": "Unknown",
-        "error": None
+        "error": None,
+        "timestamp": datetime.now().isoformat()
     }
     
     try:
@@ -203,7 +204,8 @@ def process_sk_keys(sk_keys, job_id):
                     "pending_balance": 0,
                     "url": "Unknown",
                     "account_name": "Unknown",
-                    "error": str(e)
+                    "error": str(e),
+                    "timestamp": datetime.now().isoformat()
                 }
                 with lock:
                     if job_id not in results_store:
@@ -262,23 +264,6 @@ def check_progress(job_id):
         "progress": (job_data["completed"] / job_data["total"]) * 100,
         "results": job_data["results"]
     })
-
-@app.route('/api/cleanup-old-jobs', methods=['POST'])
-def cleanup_old_jobs():
-    """Clean up old jobs to prevent memory leaks"""
-    current_time = time.time()
-    old_jobs = []
-    
-    with lock:
-        for job_id, job_data in results_store.items():
-            job_time = int(job_id)
-            if current_time - job_time > 3600:  # 1 hour old
-                old_jobs.append(job_id)
-        
-        for job_id in old_jobs:
-            del results_store[job_id]
-    
-    return jsonify({"cleaned": len(old_jobs)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
