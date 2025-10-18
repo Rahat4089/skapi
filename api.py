@@ -6,11 +6,7 @@ import asyncio
 import re
 import json
 from datetime import datetime
-from colorama import init, Fore, Back, Style
 import concurrent.futures
-
-# Initialize colorama
-init(autoreset=True)
 
 app = Flask(__name__)
 
