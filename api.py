@@ -21,23 +21,17 @@ def xor(text, key):
     return output
 
 def decode_checkout_url(checkout_url):
-    """Decode Stripe checkout URL to extract PK key"""
     try:
-        # Extract the encoded part after #
         encoded_part = checkout_url.split("#")[1]
         
-        # URL decode
         url_decoded = urllib.parse.unquote(encoded_part)
         
-        # Base64 decode
         base64_decoded = base64.b64decode(url_decoded).decode('latin-1')
         
-        # Try different XOR keys
         found_pk = None
         for xor_key in [5, 3, 4, 6, 7]:
             xored = xor(base64_decoded, xor_key)
             
-            # Look for PK key pattern
             pk_pattern = r'pk_(test|live)_[A-Za-z0-9_]+'
             match = re.search(pk_pattern, xored)
             if match:
@@ -45,7 +39,6 @@ def decode_checkout_url(checkout_url):
                 break
         
         if not found_pk:
-            # If XOR doesn't work, try direct extraction
             pk_pattern = r'pk_(test|live)_[A-Za-z0-9_]+'
             match = re.search(pk_pattern, base64_decoded)
             if match:
@@ -57,7 +50,6 @@ def decode_checkout_url(checkout_url):
         return None
 
 def format_currency(amount, currency="usd"):
-    """Format currency amount properly"""
     if currency.lower() == "usd":
         return f"${amount/100:.2f}"
     elif currency.lower() == "eur":
@@ -68,7 +60,6 @@ def format_currency(amount, currency="usd"):
         return f"{amount/100:.2f} {currency.upper()}"
 
 def test_cc_payment_integration(sk_key):
-    """Test if CC payments can be processed directly"""
     session = requests.Session()
     headers = {"Authorization": f"Bearer {sk_key}"}
     
@@ -81,7 +72,6 @@ def test_cc_payment_integration(sk_key):
     }
     
     try:
-        # Create a payment intent with test credit card
         payment_intent_url = "https://api.stripe.com/v1/payment_intents"
         
         payment_data = {
@@ -117,7 +107,6 @@ def test_cc_payment_integration(sk_key):
     return integration_status
 
 def get_stripe_account_info(sk_key):
-    """Get comprehensive Stripe account information"""
     session = requests.Session()
     headers = {"Authorization": f"Bearer {sk_key}"}
     
@@ -154,7 +143,6 @@ def get_stripe_account_info(sk_key):
     }
     
     try:
-        # Get account information
         account_url = "https://api.stripe.com/v1/account"
         req = session.get(account_url, headers=headers)
         
@@ -166,7 +154,6 @@ def get_stripe_account_info(sk_key):
         if req.status_code == 200:
             account_data = req.json()
             
-            # Extract account details
             account_info["account_id"] = account_data.get("id", "Unknown")
             account_info["livemode"] = account_data.get("livemode", False)
             account_info["country"] = account_data.get("country", "Unknown").upper()
@@ -185,34 +172,28 @@ def get_stripe_account_info(sk_key):
             account_info["mcc"] = business_profile.get("mcc", "Unknown")
             account_info["phone"] = business_profile.get("support_phone", "Unknown")
             
-            # Individual info
             individual = account_data.get("individual", {})
             first_name = individual.get("first_name", "")
             last_name = individual.get("last_name", "")
             account_info["individual_name"] = f"{first_name} {last_name}".strip()
             
-            # Settings
             settings = account_data.get("settings", {})
             dashboard = settings.get("dashboard", {})
             account_info["display_name"] = dashboard.get("display_name", "Unknown")
             account_info["timezone"] = dashboard.get("timezone", "Unknown")
             
-            # Payment settings
             payments = settings.get("payments", {})
             account_info["statement_descriptor"] = payments.get("statement_descriptor", "Unknown")
             
-            # Card settings
             card_payments = settings.get("card_payments", {})
             account_info["statement_prefix"] = card_payments.get("statement_descriptor_prefix", "Unknown")
-            
-            # Payout settings
+
             payouts = settings.get("payouts", {})
             schedule = payouts.get("schedule", {})
             delay_days = schedule.get("delay_days", "Unknown")
             interval = schedule.get("interval", "Unknown")
             account_info["payout_schedule"] = f"{delay_days} days delay, {interval}"
             
-            # Dates
             created_timestamp = account_data.get("created")
             if created_timestamp:
                 account_info["created"] = datetime.fromtimestamp(created_timestamp).strftime('%Y-%m-%d %H:%M:%S')
@@ -221,7 +202,6 @@ def get_stripe_account_info(sk_key):
         account_info["error"] = f"Account info error: {str(e)}"
     
     try:
-        # Get balance information
         balance_url = "https://api.stripe.com/v1/balance"
         req = session.get(balance_url, headers=headers)
         
@@ -252,7 +232,6 @@ def get_stripe_account_info(sk_key):
         else:
             account_info["error"] += f" | Balance info error: {str(e)}"
     
-    # Determine charge mode
     if "test" in sk_key:
         account_info["charge_mode"] = "Test Mode"
     else:
@@ -261,27 +240,22 @@ def get_stripe_account_info(sk_key):
     return account_info
 
 def extract_pk_key(sk_key):
-    """Extract PK key through checkout session"""
     session = requests.Session()
     headers = {"Authorization": f"Bearer {sk_key}"}
     
     try:
-        # Create a simple product and price first
         products_url = "https://api.stripe.com/v1/products"
         prices_url = "https://api.stripe.com/v1/prices"
         checkout_sessions_url = "https://api.stripe.com/v1/checkout/sessions"
         
-        # Create product
         product_data = {"name": "Test Product", "type": "service"}
         product_req = session.post(products_url, headers=headers, data=product_data)
         product_id = product_req.json().get("id") if product_req.status_code == 200 else None
         
-        # Create price
         price_data = {"unit_amount": 100, "currency": "usd", "product": product_id}
         price_req = session.post(prices_url, headers=headers, data=price_data)
         price_id = price_req.json().get("id") if price_req.status_code == 200 else None
         
-        # Create checkout session
         checkout_data = {
             "success_url": "https://example.com/success",
             "line_items[0][price]": price_id,
@@ -301,11 +275,9 @@ def extract_pk_key(sk_key):
         return f"Extraction Error: {str(e)}"
 
 def analyze_account_health(account_info, cc_test_result):
-    """Analyze account health and security status"""
     health_indicators = []
     security_restrictions = []
     
-    # Health indicators
     if account_info.get("charges_enabled"):
         health_indicators.append("Charges enabled")
     else:
@@ -321,12 +293,10 @@ def analyze_account_health(account_info, cc_test_result):
     else:
         health_indicators.append("Details not submitted")
     
-    # Security restrictions
     if not cc_test_result.get("cc_payments_active"):
         security_restrictions.append("Raw card data processing disabled")
         security_restrictions.append("Requires Stripe.js/Elements")
     
-    # Determine overall health
     positive_indicators = sum(1 for indicator in health_indicators if "enabled" in indicator or "submitted" in indicator)
     
     if positive_indicators >= 2:
@@ -344,7 +314,6 @@ def analyze_account_health(account_info, cc_test_result):
 
 @app.route('/api/stripe/check', methods=['GET', 'POST'])
 def stripe_account_check():
-    """Main endpoint to check Stripe account information"""
     if request.method == 'GET':
         sk_key = request.args.get('sk')
     else:
@@ -356,7 +325,6 @@ def stripe_account_check():
             "message": "Missing 'sk' parameter. Provide Stripe secret key as 'sk' parameter."
         }), 400
     
-    # Validate SK format
     if not sk_key.startswith(('sk_live_', 'sk_test_')):
         return jsonify({
             "status": "error",
@@ -364,35 +332,28 @@ def stripe_account_check():
         }), 400
     
     try:
-        # Run all checks in parallel for better performance
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            # Submit tasks
             account_future = executor.submit(get_stripe_account_info, sk_key)
             pk_future = executor.submit(extract_pk_key, sk_key)
             cc_test_future = executor.submit(test_cc_payment_integration, sk_key)
             
-            # Get results
             account_info = account_future.result()
             pk_key = pk_future.result()
             cc_test_result = cc_test_future.result()
         
-        # Update account info with PK key
         account_info["pk_key"] = pk_key
         
-        # Analyze account health
         health_analysis = analyze_account_health(account_info, cc_test_result)
         account_info.update(health_analysis)
         
-        # Add CC integration test result
         account_info["cc_integration_test"] = cc_test_result
         
-        # Determine integration status
         if cc_test_result.get("cc_payments_active"):
             account_info["integration_status"] = "ACTIVE"
         else:
             account_info["integration_status"] = "OFF"
         
-        # Format the response in indexed way
+
         response_data = {
             "status": "success",
             "timestamp": datetime.now().isoformat(),
@@ -446,7 +407,7 @@ def stripe_account_check():
                 "payout_schedule": account_info["payout_schedule"]
             },
             "keys": {
-                "secret_key_preview": f"{sk_key[:20]}...{sk_key[-20:]}",
+                "secret_key_preview": f"{sk_key}",
                 "publishable_key": account_info["pk_key"],
                 "key_type": "Live" if "pk_live" in account_info["pk_key"] else "Test"
             },
@@ -462,7 +423,7 @@ def stripe_account_check():
             }
         }
         
-        # Add error if present
+
         if "error" in account_info:
             response_data["errors"] = [account_info["error"]]
         
